@@ -2,27 +2,27 @@
 
 ## 1. Wat heb ik gedaan?
 
-Ik heb de SMS-spamdataset verdeeld over 5 clients, elk met een andere verhouding spam en ham. Elke client traint een Logistic Regression op zijn eigen berichten. Na elke ronde maakt de server het gemiddelde van de gewichten (Federated Averaging) en krijgen de clients dat gemiddelde terug. Dat heb ik 10 rondes herhaald. Op het einde heb ik het model getest op een aparte testset en vergeleken met een model dat op alle data samen getraind is.
+Ik heb de berichten ongelijk verdeeld over 5 clients, elk met een ander aantal spamberichten. Client 1 heeft ongeveer 39% spam, terwijl client 5 maar 3% heeft. Vervolgens traint een logistic regression model elke ronde op de berichten van de clients, het geeft dan op basis van de gewichten een gemiddelde (*Federated Average*), dit gaat dan 10 rondes zo door. Op het einde wordt er getest op de testset en vergeleken met een model dat niet federated learning deed, maar centraal getraind is.
 
 ## 2. Reflectie
 
 ### Voordelen van federated learning
 
-Het resultaat is bijna even goed als centraal trainen (accuracy 0.976 tegenover 0.981). Dus het voordeel ligt niet in de accuracy, maar in de veiligheid. Er is bijna geen sprake van een trade-off door federated learning te gebruiken, dus je profiteert van zowel van de goede resultaten als eigen data governance.
+Federated learning had een recall van 0.840
 
-### Beperkingen
+Centraal getraind had een recall van 0.887
 
-Het model heeft meerdere rondes nodig: in ronde 1 is de recall nog 0 en pas rond ronde 7 zit het op 0.84. De recall blijft ook wat lager dan bij het centrale model (0.840 tegenover 0.887). Verder moet er elke ronde veel heen en weer gestuurd worden tussen server en clients, en de resultaten hangen af van variables zoals de leersnelheid.
+Beide behalen een hoge recall met lichtjes verbetering voor een centraal getraind model, maar dat verschil is klein. Er is daarom bijna geen sprake van een trade-off door federated learning te gebruiken. Omdat de waarden niet veel verschillen, zijn de voordelen vooral voor privacy. Met federated learning blijft de ruwe data op het toestel van de client.
 
-### Invloed van dataheterogeniteit
+### Beperkingen en invloed van heterogeniteit
 
-Client 1 heeft 39% spam en client 5 maar 3%, dus elk lokaal model leert vooral zijn eigen soort berichten. Het gemiddelde werkt toch goed, maar in een eerdere versie met een hogere leersnelheid sprong de recall van ronde tot ronde heen en weer. Dat komt waarschijnlijk doordat de clients met bijna alleen ham het gemiddelde naar "alles is ham" trekken.
+De data van de clients is verschillend, waardoor het model in de eerste rondes trager leert dan bij een gelijke verdeling. De grootste beperking is de communicatie: elke ronde moeten alle gewichten van elke client naar de server en terug.
 
 ### Conclusie
 
-Federated learning werkt goed voor spamdetectie en je houdt de data privé. Het kost wel iets: meer rondes, meer communicatie en een iets lagere recall. Een neural network gaf geen verbetering ten opzichte van Logistic Regression.
+Federated learning laat toe een client lokaal een model te gebruiken zonder behoefte aan hun ruwe data te sturen naar een server of cloud, enkel gewichten. Hierdoor is het meer privacy bewust. Omdat die heterogeniteit zorgt voor kleine verschillen, is het wel lichtjes anders dan centraal trainen. Maar in deze labo is het verschil klein, enkel voor zeer grote modellen of use-cases kan ik zien dat federated learning niet een goede keuze kan zijn.
 
-## 3. Datasplitsing (dataheterogeniteit)
+## 3. Datasplitsing
 
 | Client | Berichten | % spam |
 |---|---|---|
@@ -34,7 +34,7 @@ Federated learning werkt goed voor spamdetectie en je houdt de data privé. Het 
 
 ![Data per client](figuren/1_data_per_client.png)
 
-## 4. Resultaten per ronde (globaal model)
+## 4. Resultaten per ronde
 
 | Ronde | Accuracy | Precision | Recall |
 |---|---|---|---|
@@ -81,6 +81,8 @@ Gemiddeld over 5 seeds:
 | Federated NN (2 lagen: 64 en 32) | 0.973 | 0.980 | 0.827 | 0.896 |
 | Centraal Logistic Regression | 0.985 | 0.987 | 0.905 | 0.944 |
 | Centraal NN (32) | 0.985 | 0.982 | 0.908 | 0.943 |
+
+Er is eigenlijk weinig om te winnen, een groter model (neuraal netwerk) was in mijn test niet beter.
 
 ## 7. Obstakels en oplossingen
 
